@@ -1,0 +1,87 @@
+import numpy as np
+
+# 七段顯示器對應表
+digit_map = {
+    0: [1,1,1,1,1,1,0],
+    1: [0,1,1,0,0,0,0],
+    2: [1,1,0,1,1,0,1],
+    3: [1,1,1,1,0,0,1],
+    4: [0,1,1,0,0,1,1],
+    5: [1,0,1,1,0,1,1],
+    6: [1,0,1,1,1,1,1],
+    7: [1,1,1,0,0,0,0],
+    8: [1,1,1,1,1,1,1],
+    9: [1,1,1,1,0,1,1],
+}
+
+# 將數字編碼成 one-hot 向量
+def one_hot(n):
+    vec = np.zeros(10)
+    vec[n] = 1
+    return vec
+
+# 預測函數
+def predict(W, b, x):
+    return np.dot(W, x) + b
+
+# 均方誤差損失
+def loss(W, b, x, y_true):
+    y_pred = predict(W, b, x)
+    return np.mean((y_pred - y_true)**2)
+
+# 數值梯度計算
+def numerical_gradient(W, b, x, y_true, h=1e-5):
+    grad_W = np.zeros_like(W)
+    grad_b = np.zeros_like(b)
+    
+    base_loss = loss(W, b, x, y_true)
+    
+    # W 的梯度
+    for i in range(W.shape[0]):
+        for j in range(W.shape[1]):
+            W[i,j] += h
+            l = loss(W, b, x, y_true)
+            grad_W[i,j] = (l - base_loss) / h
+            W[i,j] -= h
+    
+    # b 的梯度
+    for i in range(len(b)):
+        b[i] += h
+        l = loss(W, b, x, y_true)
+        grad_b[i] = (l - base_loss) / h
+        b[i] -= h
+    
+    return grad_W, grad_b
+
+# 初始化參數
+np.random.seed(0)
+W = np.random.randn(7,10) * 0.01
+b = np.zeros(7)
+
+# 學習率
+lr = 0.1
+epochs = 500
+
+# 訓練迴圈
+for epoch in range(epochs):
+    total_loss = 0
+    for digit, seg in digit_map.items():
+        x = one_hot(digit)
+        y_true = np.array(seg)
+        
+        grad_W, grad_b = numerical_gradient(W, b, x, y_true)
+        
+        # 參數更新
+        W -= lr * grad_W
+        b -= lr * grad_b
+        
+        total_loss += loss(W, b, x, y_true)
+    if epoch % 50 == 0:
+        print(f"Epoch {epoch}, loss={total_loss/10:.4f}")
+
+# 訓練後測試
+for digit in range(10):
+    x = one_hot(digit)
+    pred = predict(W, b, x)
+    pred_binary = (pred > 0.5).astype(int)
+    print(f"Digit {digit}: pred={pred_binary}, true={digit_map[digit]}")
