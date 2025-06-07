@@ -1,0 +1,17 @@
+# 初始化
+x, y, z = 0, 0, 0
+learning_rate = 0.1
+
+for _ in range(100):  # 做 100 次迭代
+    # 計算梯度
+    dx = 2 * x - 2
+    dy = 2 * y - 4
+    dz = 2 * z - 6
+
+    # 更新位置（往負梯度方向走）
+    x = x - learning_rate * dx
+    y = y - learning_rate * dy
+    z = z - learning_rate * dz
+
+# 結果
+print(f"Minimum at: ({x:.2f}, {y:.2f}, {z:.2f})")
