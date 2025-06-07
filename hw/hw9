@@ -1,0 +1,37 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# 1. 生成假資料：y = 3*x + 2 + 噪音
+torch.manual_seed(42)
+x_train = torch.unsqueeze(torch.linspace(0, 10, 100), dim=1)  # (100,1)
+y_train = 3 * x_train + 2 + torch.randn(x_train.size()) * 1.5  # 加入些噪音
+
+# 2. 定義線性模型
+model = nn.Linear(in_features=1, out_features=1)  # y = Wx + b
+
+# 3. 損失函數和優化器
+criterion = nn.MSELoss()
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+# 4. 訓練模型
+num_epochs = 200
+for epoch in range(num_epochs):
+    model.train()
+    
+    optimizer.zero_grad()            # 清除梯度
+    outputs = model(x_train)         # 預測
+    loss = criterion(outputs, y_train)  # 計算損失
+    loss.backward()                  # 反向傳播計算梯度
+    optimizer.step()                 # 更新權重
+    
+    if (epoch + 1) % 20 == 0:
+        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+# 5. 測試（預測）
+model.eval()
+with torch.no_grad():
+    x_test = torch.tensor([[4.0], [7.5], [9.0]])
+    y_pred = model(x_test)
+    print("測試輸入:", x_test.squeeze().tolist())
+    print("預測輸出:", y_pred.squeeze().tolist())
