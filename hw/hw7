@@ -1,0 +1,89 @@
+from micrograd import Value  # 假設你已經有 micrograd 的 Value 類別實作
+
+# 如果沒有，你可以用這裡簡易的Value版本：
+class Value:
+    def __init__(self, data, _children=(), _op='', label=''):
+        self.data = data
+        self.grad = 0.0
+        self._backward = lambda: None
+        self._prev = set(_children)
+        self._op = _op
+        self.label = label
+
+    def __add__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data + other.data, (self, other), '+')
+
+        def _backward():
+            self.grad += out.grad
+            other.grad += out.grad
+        out._backward = _backward
+
+        return out
+
+    def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
+        out = Value(self.data * other.data, (self, other), '*')
+
+        def _backward():
+            self.grad += other.data * out.grad
+            other.grad += self.data * out.grad
+        out._backward = _backward
+
+        return out
+
+    def __pow__(self, other):
+        assert isinstance(other, (int, float))
+        out = Value(self.data ** other, (self,), f'**{other}')
+
+        def _backward():
+            self.grad += other * (self.data ** (other - 1)) * out.grad
+        out._backward = _backward
+
+        return out
+
+    def backward(self):
+        # 反向傳播 (topological sort)
+        topo = []
+        visited = set()
+        def build_topo(v):
+            if v not in visited:
+                visited.add(v)
+                for child in v._prev:
+                    build_topo(child)
+                topo.append(v)
+        build_topo(self)
+
+        self.grad = 1.0
+        for node in reversed(topo):
+            node._backward()
+
+# 創建變數
+x = Value(0.0, label='x')
+y = Value(0.0, label='y')
+z = Value(0.0, label='z')
+
+learning_rate = 0.1
+
+for i in range(100):
+    # 計算函數 f
+    f = x**2 + y**2 + z**2 - 2*x - 4*y - 6*z + 8
+
+    # 清除梯度
+    x.grad = 0
+    y.grad = 0
+    z.grad = 0
+
+    # 反向傳播計算梯度
+    f.backward()
+
+    # 梯度下降更新
+    x.data -= learning_rate * x.grad
+    y.data -= learning_rate * y.grad
+    z.data -= learning_rate * z.grad
+
+    if i % 10 == 0:
+        print(f"Step {i}: f={f.data:.4f}, x={x.data:.4f}, y={y.data:.4f}, z={z.data:.4f}")
+
+print(f"最低點坐標: x={x.data:.4f}, y={y.data:.4f}, z={z.data:.4f}")
+print(f"函數最低值: f={f.data:.4f}")
