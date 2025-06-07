@@ -1,0 +1,47 @@
+import random
+import math
+
+# 城市與距離表（用座標模擬）
+cities = {
+    "A": (0, 0),
+    "B": (1, 5),
+    "C": (2, 2),
+    "D": (5, 2),
+    "E": (6, 6),
+    "F": (8, 3)
+}
+
+def distance(city1, city2):
+    x1, y1 = cities[city1]
+    x2, y2 = cities[city2]
+    return math.hypot(x2 - x1, y2 - y1)
+
+def total_distance(path):
+    dist = 0
+    for i in range(len(path)):
+        dist += distance(path[i], path[(i+1) % len(path)])
+    return dist
+
+def generate_neighbor(path):
+    a, b = random.sample(range(len(path)), 2)
+    neighbor = path[:]
+    neighbor[a], neighbor[b] = neighbor[b], neighbor[a]
+    return neighbor
+
+# 初始解
+current_path = list(cities.keys())
+random.shuffle(current_path)
+current_cost = total_distance(current_path)
+
+# 爬山演算法主循環
+for i in range(1000):  # 最多跑 1000 次
+    neighbor = generate_neighbor(current_path)
+    neighbor_cost = total_distance(neighbor)
+
+    if neighbor_cost < current_cost:
+        current_path = neighbor
+        current_cost = neighbor_cost
+
+# 結果
+print("最短路徑：", current_path + [current_path[0]])
+print(f"總距離：{current_cost:.2f}")
