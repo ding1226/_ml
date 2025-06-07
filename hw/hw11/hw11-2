@@ -1,0 +1,15 @@
+from sklearn.datasets import load_digits
+from sklearn.cluster import KMeans
+from sklearn.metrics import adjusted_rand_score
+
+digits = load_digits()
+X = digits.data
+y_true = digits.target
+
+# KMeans 分群 (設 10 群，因為 digits 有 10 類)
+kmeans = KMeans(n_clusters=10, random_state=42)
+clusters = kmeans.fit_predict(X)
+
+# 評估分群效果 (Adjusted Rand Index 需要真實標籤)
+ari = adjusted_rand_score(y_true, clusters)
+print("Digits 分群 Adjusted Rand Index:", ari)
