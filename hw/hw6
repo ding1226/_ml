@@ -1,0 +1,28 @@
+import math
+
+class Value:
+    # ...（__init__ 等已有程式碼）...
+
+    def sigmoid(self):
+        x = self.data
+        s = 1 / (1 + math.exp(-x))
+        out = Value(s, (self,), 'sigmoid')
+
+        def _backward():
+            # 梯度乘以 sigmoid * (1 - sigmoid)
+            self.grad += out.grad * s * (1 - s)
+        out._backward = _backward
+
+        return out
+
+    def exp(self):
+        x = self.data
+        e = math.exp(x)
+        out = Value(e, (self,), 'exp')
+
+        def _backward():
+            # 梯度乘以 e^x
+            self.grad += out.grad * e
+        out._backward = _backward
+
+        return out
