@@ -1,0 +1,28 @@
+import torch
+
+# 初始化變數，啟用梯度追蹤
+x = torch.tensor(0.0, requires_grad=True)
+y = torch.tensor(0.0, requires_grad=True)
+z = torch.tensor(0.0, requires_grad=True)
+
+learning_rate = 0.1
+optimizer = torch.optim.SGD([x, y, z], lr=learning_rate)
+
+for step in range(100):
+    optimizer.zero_grad()
+    
+    # 計算函數值
+    f = x**2 + y**2 + z**2 - 2*x - 4*y - 6*z + 8
+    
+    # 反向傳播計算梯度
+    f.backward()
+    
+    # 參數更新
+    optimizer.step()
+    
+    if step % 10 == 0:
+        print(f"Step {step}: f={f.item():.6f}, x={x.item():.6f}, y={y.item():.6f}, z={z.item():.6f}")
+
+print("最低點坐標:")
+print(f"x = {x.item():.6f}, y = {y.item():.6f}, z = {z.item():.6f}")
+print(f"函數最低值: f = {f.item():.6f}")
