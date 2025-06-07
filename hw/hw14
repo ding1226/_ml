@@ -1,0 +1,31 @@
+import gym
+
+env = gym.make("CartPole-v1")
+obs = env.reset()
+
+def hard_coded_policy(obs):
+    # 取出竿子角度與角速度
+    angle = obs[2]
+    angle_vel = obs[3]
+
+    # 簡單規則：
+    # 如果竿子向右傾斜且角速度正（繼續往右傾），就推右（1）
+    # 如果竿子向右傾斜但角速度負（往左轉），推左（0）
+    # 反之同理
+    if angle > 0:
+        return 1 if angle_vel >= 0 else 0
+    else:
+        return 0 if angle_vel <= 0 else 1
+
+total_reward = 0
+done = False
+obs = env.reset()
+
+while not done:
+    env.render()
+    action = hard_coded_policy(obs)
+    obs, reward, done, info = env.step(action)
+    total_reward += reward
+
+print(f"總分：{total_reward}")
+env.close()
